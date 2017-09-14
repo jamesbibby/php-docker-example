@@ -1,0 +1,2 @@
+CREATE TABLE PET (name VARCHAR(50), category VARCHAR(50));
+INSERT INTO PET VALUES ("nova", "dog");

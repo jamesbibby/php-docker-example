@@ -1,0 +1,43 @@
+version: '3'
+services:
+    # no need to have a local installation of redis or mysql,
+    # they will run entirely in containers
+    redis:
+        image: smebberson/alpine-redis:latest
+        container_name: "redis"
+        hostname: "redis"
+        ports:
+            - "6379:6379"
+    mysql:
+        image: mysql:5.5
+        container_name: "mysql"
+        hostname: "mysql"
+        environment:
+          # these are expected by the container image
+          - MYSQL_ROOT_PASSWORD=p4ssw0rd
+          - MYSQL_DATABASE=test_db
+        volumes:
+          - ./seed_data/test_db.sql:/docker-entrypoint-initdb.d/test_db.sql
+          - ./data:/var/lib/mysql
+        ports:
+          #format is "localport:containerport"
+          # feel free to change the localport to anything you wish,
+          # just remember what you set it to when you connect
+          - "3306:3306"
+    php:
+      image: sample/php-app
+      container_name: "php-app"
+      hostname: "php-app"
+      depends_on:
+        # this ensures that mysql and redis start before this container
+        - mysql
+        - redis
+      environment:
+        # these environment variables will be available inside your container
+        - DB_USERNAME="root"
+        - DB_PASSWORD="p4ssw0rd"
+        - DB_HOST="mysql"
+        - DB_NAME="test_db"
+        - DB_PORT="3306"  # this should always be 3306, the container port, as it will connect on a local network
+      ports:
+        - "80:80"
